@@ -29,8 +29,9 @@ const Availability = () => {
   };
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-xl shadow w-full">
-      <h2 className="text-lg font-semibold mb-6">Manage Availability</h2>
+    <div className="">
+      {/* bg-white p-6 md:p-8 rounded-xl shadow w-full */}
+      {/* <h2 className="text-lg font-semibold mb-6">Manage Availability</h2> */}
 
       {/* Select Therapist */}
       <div className="mb-6">
@@ -99,11 +100,11 @@ const Availability = () => {
         + Add Time slot
       </button>
 
-      <div className="mt-10 flex justify-center">
+      {/* <div className="mt-10 flex justify-center">
         <button className="bg-orange-500 hover:bg-orange-600 text-white px-12 py-2 rounded-lg">
           Save
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

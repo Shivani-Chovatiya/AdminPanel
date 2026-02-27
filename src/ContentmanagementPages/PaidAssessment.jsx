@@ -1,11 +1,11 @@
 import { Activity, ArrowDown, ArrowUp, Edit, Eye, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 
-const FreeAssessmentsPage = () => {
+const PaidAssessment = () => {
   const stats = [
     {
-      label: "Active Categories",
-      value: 14,
+      label: "Total Revenue",
+      value: "$45,200",
       change: "+80%",
       changeColor: "text-green-500",
       bgColor: "bg-green-100",
@@ -13,7 +13,7 @@ const FreeAssessmentsPage = () => {
       icon: <Activity className="w-4 h-4 text-green-700" />,
     },
     {
-      label: "Total Questions",
+      label: "Active Paid Tests",
       value: 186,
       change: "+12%",
       changeColor: "text-blue-500",
@@ -22,8 +22,8 @@ const FreeAssessmentsPage = () => {
       icon: <ArrowUp className="w-4 h-4 text-blue-600" />,
     },
     {
-      label: "Assessments Completed",
-      value: "2.4k",
+      label: "Total Sales",
+      value: "1042",
       change: "-5%",
       changeColor: "text-red-500",
       bgColor: "bg-red-100",
@@ -60,7 +60,7 @@ const FreeAssessmentsPage = () => {
   return (
     <div>
       <div className="flex flex-row justify-between gap-5 p-2 md:p-6">
-        <h1 className="text-black font-bold text-xl">Assessment Management</h1>
+        <h1 className="text-black font-bold text-xl">Paid Assessment</h1>
         <button className="bg-primary rounded-2xl px-2 py-1 text-white text-xs md:text-sm">
           + Add New Assessment
         </button>
@@ -209,4 +209,4 @@ const FreeAssessmentsPage = () => {
   );
 };
 
-export default FreeAssessmentsPage;
+export default PaidAssessment;
