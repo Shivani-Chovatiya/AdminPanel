@@ -44,12 +44,24 @@
 
 // export default ContentManagement;
 import { Edit, Edit2, Eye, Trash2 } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Switch from "react-switch";
 import JoditEditor from "jodit-react";
 import FreeAssessmentsPage from "../ContentmanagementPages/FreeAssessmentsPage";
 import PaidAssessment from "../ContentmanagementPages/PaidAssessment";
 import FuturePredictionQuestion from "../ContentmanagementPages/FuturePredictionQuestion";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../config/firebase";
+import Swal from "sweetalert2";
+import CompatibilityPage from "../ContentmanagementPages/CompatibilityPage";
 
 const initialReports = [
   {
@@ -81,22 +93,39 @@ const initialReports = [
 const ContentManagement = () => {
   const [type, setType] = useState("Therapy Tips");
   const [currentPage, setCurrentPage] = useState(1);
-  const [reports, setReports] = useState(initialReports);
+  const [reports, setReports] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     id: null,
     title: "",
     date: "",
     status: "Active",
-    description: "",
   });
+  const [description, setDescription] = useState("");
   const editor = useRef(null);
-  const rowsPerPage = 3;
+  const rowsPerPage = 5;
   // Calculate pagination
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentData = reports.slice(indexOfFirstRow, indexOfLastRow);
   const totalPages = Math.ceil(reports.length / rowsPerPage);
+
+  const fetchTips = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "therapyTips"));
+      const tips = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setReports(tips);
+    } catch (error) {
+      console.error("Error fetching tips:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTips();
+  }, []);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -109,41 +138,116 @@ const ContentManagement = () => {
       title: "",
       date: "",
       status: "Active",
-      description: "",
+      // description: "",
     });
+    setDescription("");
   };
 
   const handleEdit = (report) => {
     setIsEditing(true);
     setFormData(report);
+    setDescription(report.description);
   };
 
-  const handleDelete = (id) => {
-    const filtered = reports.filter((r) => r.id !== id);
-    setReports(filtered);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.id) {
-      // Update existing
-      const updated = reports.map((r) => (r.id === formData.id ? formData : r));
-      setReports(updated);
-    } else {
-      // Add new
-      const newTip = { ...formData, id: Date.now() };
-      setReports([newTip, ...reports]);
-    }
-    setIsEditing(false);
-    setFormData({
-      id: null,
-      title: "",
-      date: "",
-      status: "Active",
-      description: "",
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This tip will be permanently deleted!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, delete it",
     });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(db, "therapyTips", id));
+
+        await Swal.fire({
+          title: "Deleted!",
+          text: "The tip has been deleted successfully.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        fetchTips();
+      } catch (error) {
+        console.error("Error deleting tip:", error);
+
+        Swal.fire({
+          title: "Error!",
+          text: "Something went wrong while deleting.",
+          icon: "error",
+        });
+      }
+    }
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (formData.id) {
+        // UPDATE
+        const tipRef = doc(db, "therapyTips", formData.id);
+        await updateDoc(tipRef, {
+          title: formData.title,
+          description: description,
+          status: formData.status,
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        // CREATE
+        await addDoc(collection(db, "therapyTips"), {
+          title: formData.title,
+          description: description,
+          status: formData.status,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      fetchTips(); // refresh list
+      setIsEditing(false);
+
+      setFormData({
+        id: null,
+        title: "",
+        date: "",
+        status: "Active",
+        // description: "",
+      });
+      setDescription("");
+    } catch (error) {
+      console.error("Error saving tip:", error);
+    }
   };
 
+  const config = {
+    readonly: false, // all options from https://xdsoft.net/jodit/docs/,
+    height: 250,
+    placeholder: "Start typing...",
+    uploader: {
+      insertImageAsBase64URI: true,
+      imagesExtensions: ["jpg", "png", "jpeg", "gif"],
+      filesVariableName: function () {
+        return "file";
+      },
+      url: "/upload", // Use a dummy URL, we'll handle the upload ourselves
+      isSuccess: function (resp) {
+        return !resp.error;
+      },
+      process: function (resp) {
+        return {
+          files: resp.files.map((file) => file.base64),
+        };
+      },
+      error: function (e) {
+        console.log(e);
+      },
+    },
+    buttons: ["bold", "italic", "underline", "link", "unlink", "image"],
+  };
   return (
     <div>
       <div className="flex flex-wrap border-b border-orange-100 px-4 sm:px-6">
@@ -152,6 +256,7 @@ const ContentManagement = () => {
           "Free Assessments",
           "Paid Assessments",
           "Future Prediction Question",
+          "Compatibility Questions",
         ].map((tab) => (
           <button
             key={tab}
@@ -180,9 +285,10 @@ const ContentManagement = () => {
 
       {isEditing && (
         // Modal overlay
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 md:p-6">
           {/* Modal content */}
-          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+          {/* <div className="bg-white rounded-lg p-6 w-full max-w-md relative"> */}
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
             {/* Close button */}
             <button
               onClick={() => setIsEditing(false)}
@@ -238,16 +344,11 @@ const ContentManagement = () => {
               <div>
                 <JoditEditor
                   ref={editor}
-                  value={formData.description}
+                  value={description}
                   tabIndex={1} // tabIndex of textarea
-                  onBlur={(newContent) =>
-                    setFormData({ ...formData, description: newContent })
-                  }
-                  onChange={() => {}}
-                  config={{
-                    readonly: false,
-                    height: 400,
-                  }}
+                  onBlur={(newContent) => setDescription(newContent)}
+                  onChange={(newContent) => {}}
+                  config={config}
                 />
               </div>
               <div className="flex gap-2 justify-end mt-2">
@@ -276,16 +377,16 @@ const ContentManagement = () => {
             <table className="min-w-full bg-white border border-gray-200 rounded-lg">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">
                     Title
                   </th>
-                  <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">
                     Modified
                   </th>
-                  <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">
                     Status
                   </th>
-                  <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">
                     Actions
                   </th>
                 </tr>
@@ -296,13 +397,13 @@ const ContentManagement = () => {
                     key={index}
                     className="border-t border-gray-200 hover:bg-gray-50 transition"
                   >
-                    <td className="px-2 py-2 text-center text-sm font-medium text-gray-900">
+                    <td className="px-2 py-2 text-center text-xs font-medium text-gray-900">
                       {report.title}
                     </td>
-                    <td className="px-2 py-2 text-center text-sm text-gray-600">
-                      {report.date}
+                    <td className="px-2 py-2 text-center text-xs text-gray-600">
+                      {report.createdAt?.toDate().toLocaleDateString()}
                     </td>
-                    <td className="px-2 py-2 text-center text-sm">
+                    <td className="px-2 py-2 text-center text-xs">
                       <span
                         className={`px-2 py-1 rounded-full text-center text-xs font-semibold ${
                           report.status === "Active"
@@ -313,11 +414,11 @@ const ContentManagement = () => {
                         {report.status}
                       </span>
                     </td>
-                    <td className="  gap-3 px-2 py-2 text-center text-sm  ">
+                    <td className="  gap-3 px-2 py-2 text-center text-xs  ">
                       <div className="flex justify-center items-center gap-3">
-                        <button onClick={() => alert(report.description)}>
+                        {/* <button onClick={() => alert(report.description)}>
                           <Eye className="w-5 h-5 text-blue-600" />
-                        </button>
+                        </button> */}
                         <button onClick={() => handleEdit(report)}>
                           <Edit className="w-5 h-5 text-green-600" />
                         </button>
@@ -344,7 +445,7 @@ const ContentManagement = () => {
                 onClick={() => setCurrentPage(currentPage - 1)}
                 className="px-3 py-1 text-sm border border-primary rounded-md disabled:opacity-40"
               >
-                Previous
+                Prev
               </button>
 
               {/* Page Numbers */}
@@ -369,6 +470,8 @@ const ContentManagement = () => {
         <PaidAssessment />
       ) : type === "Future Prediction Question" ? (
         <FuturePredictionQuestion />
+      ) : type === "Compatibility Questions" ? (
+        <CompatibilityPage />
       ) : (
         <></>
       )}

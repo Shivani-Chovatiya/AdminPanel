@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+import { db } from "../config/firebase";
 import {
   addDoc,
   collection,
@@ -7,16 +9,12 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  where,
 } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import { db } from "../config/firebase";
 import { Edit, Trash2 } from "lucide-react";
 
-const FuturePredictionQuestion = () => {
-  const [type, setType] = useState("1 Credits");
+const CompatibilityPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ question: "", credits: "" });
   const [isEditMode, setIsEditMode] = useState(false);
@@ -25,19 +23,8 @@ const FuturePredictionQuestion = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
 
-  // Calculate pagination
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentquestions = questions.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(questions.length / rowsPerPage);
-  useEffect(() => {
-    setCurrentPage(1); // Reset to first page when type changes
-  }, [type]);
   const fetchquestions = async () => {
-    const q = query(
-      collection(db, "predictionQuestions"),
-      where("credits", "==", Number(type.split(" ")[0])),
-    );
+    const q = query(collection(db, "compatibilityQuestions"));
 
     const querySnapshot = await getDocs(q);
 
@@ -51,21 +38,11 @@ const FuturePredictionQuestion = () => {
 
   useEffect(() => {
     fetchquestions();
-  }, [type]);
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  };
-
-  const setCredits = () => {
-    if (type === "1 Credits") {
-      setFormData({ ...formData, credits: "1" });
-    } else if (type === "2 Credits") {
-      setFormData({ ...formData, credits: "2" });
-    } else if (type === "3 Credits") {
-      setFormData({ ...formData, credits: "3" });
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -79,20 +56,23 @@ const FuturePredictionQuestion = () => {
     try {
       if (isEditMode) {
         // Update existing question
-        const questionRef = doc(db, "predictionQuestions", selectedQuestionId);
+        const questionRef = doc(
+          db,
+          "compatibilityQuestions",
+          selectedQuestionId,
+        );
         await updateDoc(questionRef, {
           question: formData.question,
           credits: Number(formData.credits),
-          type: type,
         });
 
         toast.success("Question updated successfully");
       } else {
         // Add new question
-        await addDoc(collection(db, "predictionQuestions"), {
+        await addDoc(collection(db, "compatibilityQuestions"), {
           question: formData.question,
           credits: Number(formData.credits),
-          type: type,
+
           createdAt: serverTimestamp(),
         });
 
@@ -131,7 +111,7 @@ const FuturePredictionQuestion = () => {
     if (result.isConfirmed) {
       try {
         // Delete from Firestore
-        await deleteDoc(doc(db, "predictionQuestions", id));
+        await deleteDoc(doc(db, "compatibilityQuestions", id));
 
         fetchquestions();
         Swal.fire("Deleted!", "Question has been removed.", "success");
@@ -141,71 +121,30 @@ const FuturePredictionQuestion = () => {
       }
     }
   };
-
-  const renderContent = () => {
-    let title = "";
-    let description = "";
-
-    switch (type) {
-      case "1 Credits":
-        title = "1 Credit Prediction Question";
-        description =
-          "Manage and curate low-cost future prediction prompts. These templates are optimized for high-volume, standard accuracy predictions.";
-        break;
-      case "2 Credits":
-        title = "2 Credit Prediction Question";
-        description =
-          "Manage high-complexity prediction models for premium questions. 2-credit templates include extended data points and multi-variant analysis features.";
-        break;
-      case "3 Credits":
-        title = "3 Credit Prediction Question";
-        description =
-          "Manage high-fidelity predictive modeling templates. These questions require triple credit validation for maximum accuracy and data depth.";
-        break;
-      default:
-        break;
-    }
-
-    return (
+  // Calculate pagination
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentquestions = questions.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(questions.length / rowsPerPage);
+  return (
+    <div>
       <div className="flex flex-col md:flex-row justify-center md:justify-between gap-5 p-2 md:p-6">
         <div>
-          <h1 className="text-black font-bold text-xl">{title}</h1>
-          <p className="text-gray-400 text-xs md:w-1/2">{description}</p>
+          {/* <h1 className="text-black font-bold text-xl">{title}</h1>
+          <p className="text-gray-400 text-xs md:w-1/2">{description}</p> */}
         </div>
         <div className="flex justify-center items-center">
           <button
             onClick={() => {
-              setCredits();
               setIsModalOpen(true);
             }}
-            className="bg-primary rounded-2xl px-4 py-2 w-1/2 md:w-full text-white text-xs md:text-sm"
+            disabled={questions && questions.length === 5}
+            className="bg-primary rounded-2xl px-4 py-2 w-1/2 md:w-full text-white text-xs md:text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             + Add New Question
           </button>
         </div>
       </div>
-    );
-  };
-
-  return (
-    <div>
-      {/* Tabs */}
-      <div className="flex flex-wrap border-b border-orange-100 px-4 sm:px-6">
-        {["1 Credits", "2 Credits", "3 Credits"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setType(tab)}
-            className={`py-2 px-3 text-xs font-semibold m-1 border border-primary rounded-xl ${
-              type === tab ? "bg-primary text-white" : "text-primary"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      {renderContent()}
 
       {/* Modal */}
       {isModalOpen && (
@@ -232,7 +171,6 @@ const FuturePredictionQuestion = () => {
                 min={1}
                 onWheel={(e) => e.target.blur()}
                 required
-                disabled
               />
               <div className="flex justify-end gap-2 mt-4">
                 <button
@@ -344,4 +282,4 @@ const FuturePredictionQuestion = () => {
   );
 };
 
-export default FuturePredictionQuestion;
+export default CompatibilityPage;

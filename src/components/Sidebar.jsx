@@ -69,7 +69,7 @@
 
 // export default Sidebar;
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -80,11 +80,16 @@ import {
   Menu,
   X,
   BriefcaseMedical,
+  LogOut,
 } from "lucide-react";
+import { signOut } from "firebase/auth";
+import { auth } from "../config/firebase";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
-
+  const navigate = useNavigate();
   const navItems = [
     { name: "Dashboard", path: "/dashboard/analytics", icon: LayoutDashboard },
     { name: "User Management", path: "/users", icon: Users },
@@ -99,6 +104,33 @@ const Sidebar = () => {
     // { name: "Support / Tickets", path: "/ticketsupport", icon: Ticket },
   ];
 
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out of the admin panel.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ea580c", // orange
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await signOut(auth);
+        navigate("/"); // change route if needed
+        await Swal.fire({
+          title: "Logged Out!",
+          text: "You have been successfully logged out.",
+          icon: "success",
+          confirmButtonColor: "#ea580c",
+        });
+      } catch (error) {
+        toast.error("Logout failed");
+      }
+    }
+  };
   return (
     <>
       {/* Mobile Toggle */}
@@ -128,16 +160,25 @@ const Sidebar = () => {
                     : "text-gray-600 hover:bg-gray-100"
                 }`
               }
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false);
+              }}
             >
               <item.icon size={18} />
               {item.name}
             </NavLink>
           ))}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-red-600 hover:bg-red-50 transition w-full"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
         </nav>
 
         <div className="pt-10 border-t text-sm text-gray-500">
-          © 2026 Admin Panel
+          © Admin Panel
         </div>
       </aside>
     </>

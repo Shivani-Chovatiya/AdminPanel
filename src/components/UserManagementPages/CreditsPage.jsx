@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import credits from "../../assets/credits.png";
+import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { db } from "../../config/firebase";
 
 const tabs = [
   {
@@ -16,8 +18,8 @@ const tabs = [
   },
 ];
 
-const CreditsPage = () => {
-  const data = [
+const CreditsPage = ({ user }) => {
+  const data2 = [
     {
       txn: "TXN-984210",
       date: "12 Feb 2026",
@@ -46,9 +48,55 @@ const CreditsPage = () => {
     Pending: "bg-yellow-100 text-yellow-800",
     Failed: "bg-red-100 text-red-800",
   };
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPayments = async () => {
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, "payments"),
+          where("userId", "==", user?.uid),
+          where("status", "==", "success"),
+          // orderBy("createdAt", "desc"),
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        const payments = querySnapshot.docs
+          .map((doc) => doc.data())
+          .filter(
+            (d) =>
+              d.credits &&
+              d.credits !== "Not Applicable" &&
+              typeof d.credits === "number",
+          ) // ✅ only credit purchases
+          .map((d) => ({
+            txn: d.paymentId,
+            date: d.createdAt?.toDate().toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
+            type: "Credit Purchase",
+            amount: `${d.amount}`,
+            status: "Success",
+            credits: d.credits,
+          }));
+
+        setData(payments);
+      } catch (error) {
+        console.error("Error fetching payments:", error);
+      }
+      setLoading(false);
+    };
+
+    if (user?.uid) fetchPayments();
+  }, [user]);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 3;
+  const rowsPerPage = 5;
   const [activeTab, setActiveTab] = useState(1);
   // Calculate pagination
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -64,20 +112,20 @@ const CreditsPage = () => {
           <span className="uppercase text-gray-500 text-xs md:text-sm">
             Current Credit Balance
           </span>
-          <div className="flex items-end gap-2">
+          <div className="flex  gap-2">
             <h2 className="text-xl md:text-3xl font-bold text-gray-900">
-              ₹12,500
+              {user.credits}
             </h2>
-            <span className="text-xl md:text-2xl  text-gray-400 font-normal">
+            {/* <span className="text-xl md:text-2xl  text-gray-400 font-normal">
               INR
-            </span>
+            </span> */}
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          {/* <div className="flex items-center gap-2 mt-1">
             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
             <span className="text-green-500 text-sm font-medium">
               +5% from last month
             </span>
-          </div>
+          </div> */}
         </div>
 
         <div className="bg-orange-50 border border-orange-100 rounded-full p-2 md:p-4 flex items-center justify-center">
@@ -122,47 +170,73 @@ const CreditsPage = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-center px-4 py-3  text-xs font-semibold text-gray-500 uppercase">
                     Txn ID
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-center px-4 py-3  text-xs font-semibold text-gray-500 uppercase">
                     Date
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-center px-4 py-3  text-xs font-semibold text-gray-500 uppercase">
                     Type
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-center px-4 py-3  text-xs font-semibold text-gray-500 uppercase">
+                    Credit Count
+                  </th>{" "}
+                  <th className="text-center px-4 py-3  text-xs font-semibold text-gray-500 uppercase">
                     Amount
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="text-center px-4 py-3  text-xs font-semibold text-gray-500 uppercase">
                     Status
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y  divide-gray-100">
-                {currentData.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-2 text-xs py-2 text-gray-700">
-                      {item.txn}
-                    </td>
-                    <td className="px-2 text-xs py-2 text-gray-700">
-                      {item.date}
-                    </td>
-                    <td className="px-2 text-xs py-2 text-gray-700">
-                      {item.type}
-                    </td>
-                    <td className="px-2 text-xs py-2 text-gray-700">
-                      {item.amount}
-                    </td>
-                    <td className="px-2 text-xs py-2">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusColors[item.status]}`}
-                      >
-                        {item.status}
-                      </span>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-6 text-gray-500">
+                      Loading transactions...
                     </td>
                   </tr>
-                ))}
+                ) : currentData.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-6 text-gray-500">
+                      No transactions found
+                    </td>
+                  </tr>
+                ) : (
+                  currentData.map((item, idx) => (
+                    <tr
+                      key={idx}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-2 text-center text-xs py-2 text-gray-700">
+                        {item.txn}
+                      </td>
+                      <td className="px-2 text-center text-xs py-2 text-gray-700">
+                        {item.date}
+                      </td>
+                      <td className="px-2 text-center text-xs py-2 text-gray-700">
+                        {item.type}
+                      </td>
+                      <td className="px-2 text-center text-xs py-2 text-gray-700">
+                        {item.credits}
+                      </td>
+                      <td className="px-2 text-center text-xs py-2 text-gray-700">
+                        {user.locationData &&
+                        user.locationData.country === "India"
+                          ? `₹${item.amount}`
+                          : `$${item.amount}`}
+                      </td>
+                      <td className="px-2 text-center text-xs py-2">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusColors[item.status]}`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -179,7 +253,7 @@ const CreditsPage = () => {
                 onClick={() => setCurrentPage(currentPage - 1)}
                 className="px-3 py-1 text-sm border border-primary rounded-md disabled:opacity-40"
               >
-                Previous
+                Prev
               </button>
 
               {/* Page Numbers */}

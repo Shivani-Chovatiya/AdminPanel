@@ -1,11 +1,16 @@
+import { onAuthStateChanged } from "firebase/auth";
 import { Search, Bell, User, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { auth, db } from "../config/firebase";
+import { toast } from "react-toastify";
+import { collection, getDocs, query } from "firebase/firestore";
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState(0);
   const basePath = "/" + location.pathname.split("/")[1];
   const routeMap = {
     "/dashboard": {
@@ -41,12 +46,41 @@ const Header = () => {
     currentRoute?.options?.find((opt) => opt.path === location.pathname) ||
     currentRoute?.options?.[0];
 
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const q = query(collection(db, "notifications"));
+
+      const querySnapshot = await getDocs(q);
+      const notificationsList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      const unreadCount = notificationsList.filter((n) => !n.isRead).length;
+      setNotifications(unreadCount);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      toast.error("Failed to load notifications");
+    }
+  };
+  useEffect(() => {
+    fetchNotifications();
+  }, [location.pathname]);
   return (
     <header className="w-full border-t bg-white border-b border-gray-200 px-6 md:px-8 h-16 flex items-center justify-between">
       {/* LEFT SIDE */}
       <div className="flex items-center ">
         <h2 className="text-lg font-bold text-gray-900 mr-2">
-          {currentRoute.title}
+          {currentRoute?.title}
         </h2>
 
         {/* Breadcrumb Dropdown */}
@@ -105,18 +139,27 @@ const Header = () => {
 
         {/* Notification */}
         {!location.pathname.includes("/therapist") && (
-          <div className="relative cursor-pointer">
+          <button
+            onClick={() => navigate(`/notification`)}
+            className="relative cursor-pointer"
+          >
             <Bell size={22} className="text-gray-500" />
             <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-              2
+              {notifications}
             </span>
-          </div>
+          </button>
         )}
 
         {/* Profile */}
-        {!location.pathname.includes("/therapist") && (
-          <User size={22} className="text-gray-500 cursor-pointer" />
-        )}
+        {!location.pathname.includes("/therapist") &&
+          // <User size={22} className="text-gray-500 cursor-pointer" />
+          (currentUser ? (
+            <div className="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-semibold cursor-pointer">
+              {currentUser.email?.charAt(0).toUpperCase()}
+            </div>
+          ) : (
+            <User size={22} className="text-gray-500 cursor-pointer" />
+          ))}
         {location.pathname.includes("/therapist") && (
           <button
             className="bg-primary rounded-2xl px-2 py-1 text-white text-xs md:text-sm"

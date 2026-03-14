@@ -40,7 +40,7 @@ const FuturePrediction = () => {
       ? sessionsData
       : sessionsData.filter((s) => s.status === statusFilter);
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 3;
+  const rowsPerPage = 5;
   const [activeTab, setActiveTab] = useState(1);
   // Calculate pagination
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -50,23 +50,23 @@ const FuturePrediction = () => {
 
   return (
     <div className="">
-      <div className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
-        {/* Profile Info */}
+      {/* <div className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
+
         <div className="flex items-center gap-4">
-          {/* Profile Image with status */}
+          
           <div className="relative w-24 h-24">
             <img
               src="https://i.pravatar.cc/150?img=3"
               alt="Profile"
               className="w-full h-full rounded-xl border-4 border-gray-50 shadow-sm object-cover"
             />
-            {/* Status badge */}
+           
             <div className="absolute bottom-0 right-0 bg-green-500 border-4 border-white rounded-full px-2 py-0.5 flex items-center justify-center text-white text-xs font-bold uppercase">
               Online
             </div>
           </div>
 
-          {/* Name & Details */}
+        
           <div className="flex flex-col gap-1">
             <h2 className="text-gray-900 font-bold text-xl md:text-2xl">
               John Doe
@@ -77,7 +77,7 @@ const FuturePrediction = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="p-6 bg-white rounded-xl shadow-md w-full max-w-6xl mx-auto">
         <h2 className="text-xl font-bold text-gray-900 mb-4">
           Session History
@@ -165,7 +165,7 @@ const FuturePrediction = () => {
               onClick={() => setCurrentPage(currentPage - 1)}
               className="px-3 py-1 text-sm border border-primary rounded-md disabled:opacity-40"
             >
-              Previous
+              Prev
             </button>
 
             {/* Page Numbers */}

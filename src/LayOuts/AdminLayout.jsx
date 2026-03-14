@@ -1,8 +1,11 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
+import DisabledBack from "../DisabledBack";
 
 const AdminLayout = () => {
+  DisabledBack();
+
   return (
     <div className="md:grid md:grid-cols-[256px_1fr] min-h-screen ">
       <Sidebar />

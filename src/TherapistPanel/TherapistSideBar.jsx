@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -11,11 +11,16 @@ import {
   X,
   BriefcaseMedical,
   Calendar,
+  LogOut,
 } from "lucide-react";
+import Swal from "sweetalert2";
+import { signOut } from "firebase/auth";
+import { auth } from "../config/firebase";
+import { toast } from "react-toastify";
 
 const TherapistSideBar = () => {
   const [open, setOpen] = useState(false);
-
+  const navigate = useNavigate();
   const navItems = [
     { name: "Dashboard", path: "/therapist/dashboard", icon: LayoutDashboard },
     { name: "Sessions", path: "/therapist/sessions", icon: Calendar },
@@ -25,6 +30,35 @@ const TherapistSideBar = () => {
       icon: Users,
     },
   ];
+
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out of the therapist panel.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ea580c", // orange
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await signOut(auth);
+        localStorage.clear();
+        navigate("/"); // change route if needed
+        await Swal.fire({
+          title: "Logged Out!",
+          text: "You have been successfully logged out.",
+          icon: "success",
+          confirmButtonColor: "#ea580c",
+        });
+      } catch (error) {
+        toast.error("Logout failed");
+      }
+    }
+  };
 
   return (
     <>
@@ -61,10 +95,17 @@ const TherapistSideBar = () => {
               {item.name}
             </NavLink>
           ))}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-red-600 hover:bg-red-50 transition w-full"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
         </nav>
 
         <div className="pt-10 border-t text-sm text-gray-500">
-          © 2026 Admin Panel
+          © Therapist Panel
         </div>
       </aside>
     </>
