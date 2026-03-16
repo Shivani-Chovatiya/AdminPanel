@@ -99,6 +99,7 @@ const TherapistPage = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState("All");
   const navigate = useNavigate();
   const rowsPerPage = 5;
 
@@ -125,10 +126,13 @@ const TherapistPage = () => {
   }, []);
 
   // 🔥 Filter
-  const filteredData =
-    statusFilter === "All"
-      ? therapistsData
-      : therapistsData.filter((t) => t.status === statusFilter);
+  const filteredData = therapistsData.filter((t) => {
+    const statusMatch = statusFilter === "All" || t.status === statusFilter;
+
+    const typeMatch = typeFilter === "All" || t.type === typeFilter;
+
+    return statusMatch && typeMatch;
+  });
 
   // 🔥 Pagination
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -185,6 +189,18 @@ const TherapistPage = () => {
           <option value="All">All Status</option>
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
+        </select>
+        <select
+          value={typeFilter}
+          onChange={(e) => {
+            setTypeFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="px-4 py-2 border border-gray-300 rounded-md w-full md:w-1/4"
+        >
+          <option value="All">All Types</option>
+          <option value="normal">Normal Therapist</option>
+          <option value="hypnotherapist">Hypnotherapist</option>
         </select>
       </div>
       {loading ? (

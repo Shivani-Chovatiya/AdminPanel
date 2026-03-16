@@ -299,6 +299,7 @@ const AddTherapistForm = ({ therapistid }) => {
         slots,
         status,
         experience,
+        type: "normal",
       };
       console.log(therapistData);
       if (id || therapistid) {
