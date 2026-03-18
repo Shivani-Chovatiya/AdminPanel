@@ -170,13 +170,16 @@ const AddTherapistForm = ({ therapistid }) => {
     setImagePreview(URL.createObjectURL(file));
   };
   const handleSave = async () => {
+    setLoading(true);
     if (!name.trim()) {
       toast.error("Name is required");
+      setLoading(false);
       return;
     }
 
     if (!phone.trim()) {
       toast.error("Phone number is required");
+      setLoading(false);
       return;
     }
 
@@ -185,70 +188,84 @@ const AddTherapistForm = ({ therapistid }) => {
 
     if (!phoneRegex.test(phone)) {
       toast.error("Enter a valid 10-digit Indian mobile number");
+      setLoading(false);
       return;
     }
     if (!email.trim()) {
       toast.error("Email is required");
+      setLoading(false);
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Enter a valid email");
+      setLoading(false);
       return;
     }
 
     if (!password.trim()) {
       toast.error("Password is required");
+      setLoading(false);
       return;
     }
     if (!serviceType) {
       toast.error("Service type is required");
+      setLoading(false);
       return;
     }
 
     if (!price || Number(price) <= 0) {
       toast.error("Valid price is required");
+      setLoading(false);
       return;
     }
 
     if (!usdPrice || Number(usdPrice) <= 0) {
       toast.error("Valid USD price is required");
+      setLoading(false);
       return;
     }
 
     if (!specializations || specializations.length === 0) {
       toast.error("Please select at least one specialization");
+      setLoading(false);
       return;
     }
 
     if (!languages || languages.length === 0) {
       toast.error("Please select at least one language");
+      setLoading(false);
       return;
     }
 
     if (!qualifications.trim()) {
       toast.error("Qualifications are required");
+      setLoading(false);
       return;
     }
 
     if (!experience.trim()) {
       toast.error("Experience is required");
+      setLoading(false);
       return;
     }
 
     if (!bio.trim()) {
       toast.error("Bio is required");
+      setLoading(false);
       return;
     }
 
-    if (!id && !imageFile && !therapistid) {
-      toast.error("Profile image is required");
-      return;
-    }
+    // if (!id && !imageFile && !therapistid) {
+    //   toast.error("Profile image is required");
+    //   setLoading(false);
+    // return;
+    // }
 
     if (!slots || slots.length === 0) {
       toast.error("Please add at least one availability slot");
+      setLoading(false);
       return;
     }
     // 🔍 Check if email already exists
@@ -268,8 +285,6 @@ const AddTherapistForm = ({ therapistid }) => {
     }
 
     try {
-      setLoading(true);
-
       let imageUrl = imagePreview || "";
 
       // Upload new image only if selected
@@ -447,55 +462,59 @@ const AddTherapistForm = ({ therapistid }) => {
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
               <option value="">Select Service</option>
-              <option value="Individual Therapy">Individual Therapy</option>
-              <option value="Couple Therapy">Couple Therapy</option>
+              <option value="Phycological Therapy">Phycological Therapy</option>
+              <option value="HypnoTherapy">HypnoTherapy</option>
             </select>
           </div>
 
           {/* INR Price */}
-          <div className="flex flex-col">
-            <label className="text-gray-700 font-medium mb-1">
-              Price Per Session (Indian)
-            </label>
+          {!therapistid && (
+            <div className="flex flex-col">
+              <label className="text-gray-700 font-medium mb-1">
+                Price Per Session (Indian)
+              </label>
 
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                ₹
-              </span>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  ₹
+                </span>
 
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                onWheel={(e) => e.target.blur()}
-                placeholder="Enter Price"
-                className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  onWheel={(e) => e.target.blur()}
+                  placeholder="Enter Price"
+                  className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* USD Price */}
-          <div className="flex flex-col">
-            <label className="text-gray-700 font-medium mb-1">
-              Price Per Session (USD)
-            </label>
+          {!therapistid && (
+            <div className="flex flex-col">
+              <label className="text-gray-700 font-medium mb-1">
+                Price Per Session (USD)
+              </label>
 
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                $
-              </span>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  $
+                </span>
 
-              <input
-                type="number"
-                value={usdPrice}
-                step="1"
-                onWheel={(e) => e.target.blur()}
-                onChange={(e) => setUsdPrice(e.target.value)}
-                placeholder="Enter Price"
-                className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
+                <input
+                  type="number"
+                  value={usdPrice}
+                  step="1"
+                  onWheel={(e) => e.target.blur()}
+                  onChange={(e) => setUsdPrice(e.target.value)}
+                  placeholder="Enter Price"
+                  className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

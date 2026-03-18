@@ -129,7 +129,7 @@ const TherapistPage = () => {
   const filteredData = therapistsData.filter((t) => {
     const statusMatch = statusFilter === "All" || t.status === statusFilter;
 
-    const typeMatch = typeFilter === "All" || t.type === typeFilter;
+    const typeMatch = typeFilter === "All" || t.serviceType === typeFilter;
 
     return statusMatch && typeMatch;
   });
@@ -199,8 +199,8 @@ const TherapistPage = () => {
           className="px-4 py-2 border border-gray-300 rounded-md w-full md:w-1/4"
         >
           <option value="All">All Types</option>
-          <option value="normal">Normal Therapist</option>
-          <option value="hypnotherapist">Hypnotherapist</option>
+          <option value="Phycological Therapy">Phycological Therapy</option>
+          <option value="HypnoTherapy">HypnoTherapy</option>
         </select>
       </div>
       {loading ? (

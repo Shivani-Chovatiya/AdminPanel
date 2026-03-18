@@ -229,12 +229,14 @@ const OverviewPage = (props) => {
           <>
             <div className="flex flex-col  items-center text-center">
               <div className="relative">
-                <img
+                {/* <img
                   src="https://i.pravatar.cc/150?img=3"
                   alt="profile"
                   className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
-                />
-
+                /> */}
+                <div className="justify-center items-center flex text-primary font-bold text-xl md:text-4xl w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover">
+                  {user?.fullName?.charAt(0)?.toUpperCase()}
+                </div>
                 <span className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></span>
               </div>
 

@@ -400,15 +400,15 @@ const TherapySession = ({ user, activeTabDetails }) => {
   const handleWithdrawCancelRequest = async (request) => {
     console.log(request);
     const result = await Swal.fire({
-      title: "Withdraw Cancel Request?",
-      text: "Are you sure you want to withdraw this cancellation request?",
-      icon: "question",
+      title: "Confirm Cancellation",
+      text: "Do you really want to cancel this session?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, withdraw",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Confirm",
+      cancelButtonText: "Go Back",
     });
-
     if (!result.isConfirmed) return;
 
     try {
@@ -912,7 +912,7 @@ const TherapySession = ({ user, activeTabDetails }) => {
                           onClick={() => handleWithdrawCancelRequest(request)}
                           className="px-3 py-1 text-xs font-medium text-white bg-gray-600 hover:bg-gray-700 rounded-md transition-colors"
                         >
-                          {isWithdrawing ? "Processing..." : "Restore Session"}
+                          {isWithdrawing ? "Processing..." : "Approve"}
                         </button>
                       </td>
                     </tr>

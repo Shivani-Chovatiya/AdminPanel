@@ -527,9 +527,9 @@ const ViewSessionDetails = (props) => {
                 <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">
                   Assessment Name
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">
+                {/* <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">
                   Result Status
-                </th>
+                </th> */}
                 {/* <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">
                   Actions
                 </th> */}
@@ -555,7 +555,7 @@ const ViewSessionDetails = (props) => {
                       {report.name}
                     </td>
 
-                    <td
+                    {/* <td
                       className={`px-4 py-3 text-xs ${
                         report.status === "Paid"
                           ? "text-green-600"
@@ -563,7 +563,7 @@ const ViewSessionDetails = (props) => {
                       }`}
                     >
                       {report.status}
-                    </td>
+                    </td> */}
 
                     {/* <td className="px-4 py-3">
                     <button className="text-blue-600 hover:underline">

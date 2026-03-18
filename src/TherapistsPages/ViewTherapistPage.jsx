@@ -188,6 +188,7 @@ const ProcessPaymentModal = ({
                 onChange={handleAmountChange}
                 max={totalNetEarning}
                 min={0}
+                onWheel={(e) => e.target.blur()}
                 placeholder="Enter amount"
                 className="w-full bg-transparent outline-none"
               />
@@ -703,11 +704,17 @@ const ViewTherapistPage = () => {
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 ">
           {/* Profile Section */}
           <div className="flex flex-col items-center text-center gap-3">
-            <img
-              src={therapist?.imageUrl}
-              alt={therapist?.name}
-              className="w-28 h-28 rounded-full object-cover border-4 border-gray-100 shadow"
-            />
+            {therapist?.imageUrl ? (
+              <img
+                src={therapist?.imageUrl}
+                alt={therapist?.name}
+                className="w-28 h-28 rounded-full object-cover border-4 border-gray-100 shadow"
+              />
+            ) : (
+              <div className="justify-center items-center text-primary font-bold  text-xl md:text-4xl  flex w-28 h-28 rounded-full object-cover border-4 border-gray-100 shadow">
+                {therapist?.name?.charAt(0)?.toUpperCase()}
+              </div>
+            )}
 
             <h2 className="text-2xl font-bold text-gray-800">
               {therapist?.name}
@@ -796,11 +803,30 @@ const ViewTherapistPage = () => {
             </h2>
           </div>
 
+          <div className="flex flex-col md:flex-row justify-between">
+            <div>
+              <p className="text-xs text-slate-400">Domestic Session Count</p>
+              <p className="text-base font-bold text-rose-500">
+                {/* -${usdCommission.toFixed(2)} */}
+                {totalEarnings?.totalINRSession}
+              </p>
+            </div>{" "}
+            <div className="flex justify-between">
+              <div>
+                <p className="text-xs text-slate-400">Overseas Session Count</p>
+                <p className="text-base font-bold text-rose-500">
+                  {/* -${usdCommission.toFixed(2)} */}
+                  {totalEarnings?.totalUSDSession}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="flex flex-col  justify-between mb-4">
             <p className="text-[12px] font-bold text-black tracking-widest uppercase">
               For Domestic Income
             </p>
-            <div className="flex justify-between">
+            <div className="flex flex-col md:flex-row justify-between">
               <div>
                 <p className="text-xs text-slate-400">GST (18%)</p>
                 <p className="text-base font-bold text-orange-500">
@@ -828,7 +854,7 @@ const ViewTherapistPage = () => {
             <p className="text-[12px] font-bold text-black tracking-widest uppercase">
               For Overseas Income
             </p>
-            <div className="flex justify-between">
+            <div className="flex flex-col md:flex-row justify-between">
               <div>
                 <p className="text-xs text-slate-400">Commission (30%)</p>
                 <p className="text-base font-bold text-rose-500">
@@ -840,7 +866,7 @@ const ViewTherapistPage = () => {
               <div>
                 <p className="text-xs text-slate-400">Net Earnings</p>
                 <p className="text-base font-bold text-emerald-500">
-                  {/* ${usdNet.toFixed(2)} */}₹{usdNet.toFixed()}
+                  {/* ${usdNet.toFixed(2)} */}₹{usdNet.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -852,9 +878,9 @@ const ViewTherapistPage = () => {
 
             <h2 className="text-3xl font-black text-slate-900 mt-1">
               ₹{totalNetEarning}
-              <h1 className="text-xs text-gray-400 font-bold">
+              {/* <h1 className="text-xs text-gray-400 font-bold">
                 ({inrNet}+({usdNet}*80))
-              </h1>
+              </h1> */}
               {/* </h2>
             <h2 className="text-3xl font-black text-slate-900 mt-1">
               ${totalEarnings.USD ? totalEarnings.USD.toFixed(0) : 0} */}

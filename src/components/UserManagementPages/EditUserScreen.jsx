@@ -339,6 +339,7 @@ const EditUserScreen = ({ user, onBack, onSave }) => {
                     min="0"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled
+                    onWheel={(e) => e.target.blur()}
                   />
                 </div>
               </div>
@@ -442,6 +443,7 @@ const EditUserScreen = ({ user, onBack, onSave }) => {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       disabled
+                      onWheel={(e) => e.target.blur()}
                     />
                   </div>
 
@@ -457,6 +459,7 @@ const EditUserScreen = ({ user, onBack, onSave }) => {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       disabled
+                      onWheel={(e) => e.target.blur()}
                     />
                   </div>
                 </div>
