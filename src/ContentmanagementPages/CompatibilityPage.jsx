@@ -64,6 +64,7 @@ const CompatibilityPage = () => {
         await updateDoc(questionRef, {
           question: formData.question,
           credits: Number(formData.credits),
+          category: "Compatibility",
         });
 
         toast.success("Question updated successfully");
@@ -72,7 +73,7 @@ const CompatibilityPage = () => {
         await addDoc(collection(db, "compatibilityQuestions"), {
           question: formData.question,
           credits: Number(formData.credits),
-
+          category: "Compatibility",
           createdAt: serverTimestamp(),
         });
 
@@ -202,7 +203,7 @@ const CompatibilityPage = () => {
           <thead className="bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
               <th className="px-6 py-4 font-semibold text-center">Questions</th>
-
+              <th className="px-6 py-4 font-semibold text-center">Category</th>
               <th className="px-6 py-4 font-semibold text-center">Credits</th>
               <th className="px-6 py-4 font-semibold text-right">Action</th>
             </tr>
@@ -222,7 +223,11 @@ const CompatibilityPage = () => {
                     </div>
                   </div>
                 </td>
-
+                <td className="px-6 py-4 text-center">
+                  <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-600">
+                    {q.category || "Compatibility"}
+                  </span>
+                </td>
                 {/* Phone */}
                 <td className="px-6 py-4 text-center text-slate-900">
                   {q.credits}

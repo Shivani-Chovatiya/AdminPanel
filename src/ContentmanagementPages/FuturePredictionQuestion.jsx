@@ -18,7 +18,11 @@ import { Edit, Trash2 } from "lucide-react";
 const FuturePredictionQuestion = () => {
   const [type, setType] = useState("1 Credits");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ question: "", credits: "" });
+  const [formData, setFormData] = useState({
+    question: "",
+    credits: "",
+    category: "",
+  });
   const [isEditMode, setIsEditMode] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
@@ -75,7 +79,10 @@ const FuturePredictionQuestion = () => {
       toast.error("Question cannot be empty");
       return;
     }
-
+    if (!formData.category) {
+      toast.error("Please select a category");
+      return;
+    }
     try {
       if (isEditMode) {
         // Update existing question
@@ -84,6 +91,7 @@ const FuturePredictionQuestion = () => {
           question: formData.question,
           credits: Number(formData.credits),
           type: type,
+          category: formData.category,
         });
 
         toast.success("Question updated successfully");
@@ -93,13 +101,14 @@ const FuturePredictionQuestion = () => {
           question: formData.question,
           credits: Number(formData.credits),
           type: type,
+          category: formData.category,
           createdAt: serverTimestamp(),
         });
 
         toast.success("Question added successfully");
       }
 
-      setFormData({ question: "", credits: "" });
+      setFormData({ question: "", credits: "", category: "" });
       setIsModalOpen(false);
       setIsEditMode(false);
       setSelectedQuestionId(null);
@@ -111,7 +120,11 @@ const FuturePredictionQuestion = () => {
   };
 
   const handleEdit = (q) => {
-    setFormData({ question: q.question, credits: String(q.credits) });
+    setFormData({
+      question: q.question,
+      credits: String(q.credits),
+      category: q.category || "",
+    });
     setSelectedQuestionId(q.id);
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -234,6 +247,20 @@ const FuturePredictionQuestion = () => {
                 required
                 disabled
               />
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="border px-3 py-2 rounded-md"
+                required
+              >
+                <option value="" disabled>
+                  Select Category
+                </option>
+                <option value="General">General</option>
+                <option value="Career">Career</option>
+                <option value="Marriage">Marriage</option>
+              </select>
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   type="button"
@@ -264,7 +291,7 @@ const FuturePredictionQuestion = () => {
           <thead className="bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
               <th className="px-6 py-4 font-semibold text-center">Questions</th>
-
+              <th className="px-6 py-4 font-semibold text-center">Category</th>
               <th className="px-6 py-4 font-semibold text-center">Credits</th>
               <th className="px-6 py-4 font-semibold text-right">Action</th>
             </tr>
@@ -284,7 +311,9 @@ const FuturePredictionQuestion = () => {
                     </div>
                   </div>
                 </td>
-
+                <td className="px-6 py-4 text-center text-slate-900">
+                  {q.category || ""}
+                </td>
                 {/* Phone */}
                 <td className="px-6 py-4 text-center text-slate-900">
                   {q.credits}
