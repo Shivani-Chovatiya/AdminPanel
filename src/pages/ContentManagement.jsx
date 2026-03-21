@@ -258,7 +258,7 @@ const ContentManagement = () => {
           "Paid Assessments",
           "Future Prediction Question",
           "Compatibility Questions",
-          "FAQ",
+          // "FAQ",
         ].map((tab) => (
           <button
             key={tab}
@@ -474,9 +474,9 @@ const ContentManagement = () => {
         <FuturePredictionQuestion />
       ) : type === "Compatibility Questions" ? (
         <CompatibilityPage />
-      ) : type === "FAQ" ? (
-        <FAQPage />
       ) : (
+        // ) : type === "FAQ" ? (
+        //   <FAQPage />
         <></>
       )}
     </div>
