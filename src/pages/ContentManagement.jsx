@@ -62,6 +62,7 @@ import {
 import { db } from "../config/firebase";
 import Swal from "sweetalert2";
 import CompatibilityPage from "../ContentmanagementPages/CompatibilityPage";
+import FAQPage from "../ContentmanagementPages/FAQPage";
 
 const initialReports = [
   {
@@ -257,6 +258,7 @@ const ContentManagement = () => {
           "Paid Assessments",
           "Future Prediction Question",
           "Compatibility Questions",
+          "FAQ",
         ].map((tab) => (
           <button
             key={tab}
@@ -472,6 +474,8 @@ const ContentManagement = () => {
         <FuturePredictionQuestion />
       ) : type === "Compatibility Questions" ? (
         <CompatibilityPage />
+      ) : type === "FAQ" ? (
+        <FAQPage />
       ) : (
         <></>
       )}
