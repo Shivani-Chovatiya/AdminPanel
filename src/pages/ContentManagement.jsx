@@ -58,11 +58,14 @@ import {
   deleteDoc,
   doc,
   serverTimestamp,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import Swal from "sweetalert2";
 import CompatibilityPage from "../ContentmanagementPages/CompatibilityPage";
 import FAQPage from "../ContentmanagementPages/FAQPage";
+import { toast } from "react-toastify";
 
 const initialReports = [
   {
@@ -187,6 +190,31 @@ const ContentManagement = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // 🔍 Check duplicate title
+    const q = query(
+      collection(db, "therapyTips"),
+      where("title", "==", formData.title.trim()),
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // ❌ If adding new & title exists
+    if (!formData.id && !querySnapshot.empty) {
+      toast.error("Title already exists!");
+      return;
+    }
+
+    // ❌ If editing & title exists in another doc
+    if (formData.id && !querySnapshot.empty) {
+      const isSameDoc = querySnapshot.docs.some(
+        (docItem) => docItem.id === formData.id,
+      );
+
+      if (!isSameDoc) {
+        toast.error("Title already exists!");
+        return;
+      }
+    }
 
     try {
       if (formData.id) {
@@ -198,6 +226,7 @@ const ContentManagement = () => {
           status: formData.status,
           updatedAt: serverTimestamp(),
         });
+        Swal.fire("Updated!", "Tips updated.", "success");
       } else {
         // CREATE
         await addDoc(collection(db, "therapyTips"), {
@@ -206,6 +235,7 @@ const ContentManagement = () => {
           status: formData.status,
           createdAt: serverTimestamp(),
         });
+        Swal.fire("Saved!", "Tips added.", "success");
       }
 
       fetchTips(); // refresh list

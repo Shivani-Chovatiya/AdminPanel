@@ -19,8 +19,21 @@ import ProtectedRoute from "./ProtectedRoute";
 import TherapistProtectedRoute from "./TherapistProtectedRoute";
 import ViewTherapistPage from "./TherapistsPages/ViewTherapistPage";
 import NotificationsScreen from "./components/Dashboard/NotificationsScreen";
+import { useEffect } from "react";
 
 function App() {
+  // useEffect(() => {
+  //   const handleBeforeUnload = (e) => {
+  //     e.preventDefault();
+  //     e.returnValue = ""; // required for Chrome
+  //   };
+
+  //   window.addEventListener("beforeunload", handleBeforeUnload);
+
+  //   return () => {
+  //     window.removeEventListener("beforeunload", handleBeforeUnload);
+  //   };
+  // }, []);
   return (
     <BrowserRouter>
       <Routes>

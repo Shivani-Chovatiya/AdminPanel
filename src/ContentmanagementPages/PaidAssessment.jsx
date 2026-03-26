@@ -4,8 +4,10 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  query,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { Activity, ArrowDown, ArrowUp, Edit, Eye, Trash2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -124,6 +126,32 @@ const PaidAssessment = () => {
     if (!sentence || !price || !usdPrice) {
       toast.error("All fields required");
       return;
+    }
+
+    // 🔍 Check duplicate title
+    const q = query(
+      collection(db, "paid_assessments"),
+      where("sentence", "==", sentence),
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // ❌ If adding new & title exists
+    if (!editingId && !querySnapshot.empty) {
+      toast.error("Paid Assessment already exists!");
+      return;
+    }
+
+    // ❌ If editing & title exists in another doc
+    if (editingId && !querySnapshot.empty) {
+      const isSameDoc = querySnapshot.docs.some(
+        (docItem) => docItem.id === editingId,
+      );
+
+      if (!isSameDoc) {
+        toast.error("Paid Assessment already exists!");
+        return;
+      }
     }
 
     try {

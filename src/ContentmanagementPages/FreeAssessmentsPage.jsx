@@ -7,9 +7,12 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  where,
+  query,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 const FreeAssessmentsPage = () => {
   const stats = [
@@ -57,6 +60,7 @@ const FreeAssessmentsPage = () => {
   const [formData, setFormData] = useState({
     sentence: "",
     status: "Active",
+    id: "",
   });
 
   const fetchAssessments = async () => {
@@ -78,7 +82,7 @@ const FreeAssessmentsPage = () => {
   const uniqueTitles = ["All", ...new Set(reports.map((r) => r.title))];
 
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const rowsPerPage = 10;
   const [activeTab, setActiveTab] = useState(1);
   // Calculate pagination
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -90,6 +94,32 @@ const FreeAssessmentsPage = () => {
     e.preventDefault();
 
     if (!formData.sentence.trim()) return;
+    console.log(formData);
+    // 🔍 Check duplicate title
+    const q = query(
+      collection(db, "assessments"),
+      where("sentence", "==", formData.sentence.trim()),
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // ❌ If adding new & title exists
+    if (!formData.id && !querySnapshot.empty) {
+      toast.error("Assessment already exists!");
+      return;
+    }
+
+    // ❌ If editing & title exists in another doc
+    if (formData.id && !querySnapshot.empty) {
+      const isSameDoc = querySnapshot.docs.some(
+        (docItem) => docItem.id === formData.id,
+      );
+
+      if (!isSameDoc) {
+        toast.error("Assessment already exists!");
+        return;
+      }
+    }
 
     try {
       if (editingId) {
@@ -102,7 +132,7 @@ const FreeAssessmentsPage = () => {
 
       setIsModalOpen(false);
       setEditingId(null);
-      setFormData({ sentence: "", status: "Active" });
+      setFormData({ sentence: "", status: "Active", id: "" });
       fetchAssessments();
     } catch (error) {
       console.error(error);
@@ -124,6 +154,7 @@ const FreeAssessmentsPage = () => {
     setFormData({
       sentence: item.sentence,
       status: item.status,
+      id: item.id,
     });
     setEditingId(item.id);
     setIsModalOpen(true);
@@ -204,7 +235,7 @@ const FreeAssessmentsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {assessments.map((item) => (
+              {currentData.map((item) => (
                 <tr key={item.id} className="border-t hover:bg-gray-50">
                   <td className="text-center px-4 py-2  text-xs">
                     {item.sentence}
@@ -305,7 +336,7 @@ const FreeAssessmentsPage = () => {
                   type="button"
                   onClick={() => {
                     setEditingId(null);
-                    setFormData({ sentence: "", status: "Active" });
+                    setFormData({ sentence: "", status: "Active", id: "" });
                     setIsModalOpen(false);
                   }}
                   className="px-4 py-2 bg-gray-300 rounded-md"

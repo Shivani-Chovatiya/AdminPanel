@@ -14,10 +14,18 @@ import AssessmentPage from "./AssessmentPage";
 import TherapySession from "./TherapySession";
 import FuturePrediction from "./FuturePrediction";
 import { db } from "../../config/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 const OverviewPage = (props) => {
   const [type, setType] = useState("Overview");
+  const [predictions, setPredictions] = useState([]);
 
   const user = props.user;
   const activeTab = props.activeTab;
@@ -58,7 +66,7 @@ const OverviewPage = (props) => {
       status: "Upcoming",
     },
   ];
-  const predictions = [
+  const predictions2 = [
     {
       title: "Will user renew subscription?",
       confidence: 85,
@@ -116,6 +124,59 @@ const OverviewPage = (props) => {
     };
 
     if (user.uid) fetchTotalSpending();
+  }, [user]);
+  const getLatestPredictions = async () => {
+    if (!user?.futurePrediction) return;
+
+    try {
+      const list = await Promise.all(
+        Object.values(user.futurePrediction).map(async (item) => {
+          let originalCredits = 0;
+          let category = "";
+          // 🔥 Fetch from predictionQuestions collection
+          if (item.questionId) {
+            const docRef = doc(db, "predictionQuestions", item.questionId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+              originalCredits = docSnap.data().credits || 0;
+              category = docSnap.data().category || "";
+            }
+          }
+
+          return {
+            question: item.question,
+            creditsUsed: item.creditsUsed || 0,
+            originalCredits,
+            category,
+            status: item.status,
+            createdAt: item.createdAt,
+          };
+        }),
+      );
+
+      // ✅ Sort latest first
+      const sorted = list.sort((a, b) => {
+        const dateA = a.createdAt?.toDate
+          ? a.createdAt.toDate()
+          : new Date(a.createdAt);
+
+        const dateB = b.createdAt?.toDate
+          ? b.createdAt.toDate()
+          : new Date(b.createdAt);
+
+        return dateB - dateA;
+      });
+
+      setPredictions(sorted.slice(0, 5));
+    } catch (error) {
+      console.error("Error fetching predictions:", error);
+    }
+  };
+  useEffect(() => {
+    if (user) {
+      getLatestPredictions();
+    }
   }, [user]);
 
   return (
@@ -295,6 +356,9 @@ const OverviewPage = (props) => {
                             Status
                           </th>
                           <th className="text-center px-4 py-3 font-semibold">
+                            Category
+                          </th>
+                          <th className="text-center px-4 py-3 font-semibold">
                             Refund Status
                           </th>
                         </tr>
@@ -304,23 +368,46 @@ const OverviewPage = (props) => {
                       <tbody>
                         {predictions.map((item, index) => (
                           <tr key={index} className="border-t border-orange-50">
+                            {/* Question */}
                             <td className="px-4 py-4 text-slate-900">
-                              {item.title}
+                              <div>
+                                <h1 className="font-bold">{item.question}</h1>
+                                <span className="text-xs">
+                                  Total Credits: {item.originalCredits}
+                                </span>
+                              </div>
                             </td>
 
+                            {/* Credits */}
                             <td className="px-4 py-4 text-center font-bold text-slate-900">
-                              {item.confidence}
+                              {item.creditsUsed}
                             </td>
 
+                            {/* Status */}
                             <td className="px-4 py-4 text-center">
                               <span
-                                className={`px-2 py-1 rounded text-xs font-bold `}
+                                className={`px-2 py-1 rounded text-xs font-bold ${
+                                  item.status === "success"
+                                    ? "bg-green-100 text-green-600"
+                                    : "bg-red-100 text-red-600"
+                                }`}
                               >
-                                -
+                                {item.status}
                               </span>
                             </td>
-
-                            <td className="px-4 py-4 text-center">- </td>
+                            <td className="px-4 py-4 text-center font-bold text-slate-900">
+                              {item.category}
+                            </td>
+                            {/* Refund Status */}
+                            <td className="px-4 py-4 text-center">
+                              {item.status === "failed" ? (
+                                <span className="text-green-600 font-semibold">
+                                  Refunded
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

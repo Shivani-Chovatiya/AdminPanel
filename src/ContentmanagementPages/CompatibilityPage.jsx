@@ -9,6 +9,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -51,6 +52,32 @@ const CompatibilityPage = () => {
     if (!formData.question.trim()) {
       toast.error("Question cannot be empty");
       return;
+    }
+
+    // 🔍 Check duplicate title
+    const q = query(
+      collection(db, "compatibilityQuestions"),
+      where("question", "==", formData.question),
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // ❌ If adding new & title exists
+    if (!isEditMode && !querySnapshot.empty) {
+      toast.error("Question already exists!");
+      return;
+    }
+
+    // ❌ If editing & title exists in another doc
+    if (isEditMode && !querySnapshot.empty) {
+      const isSameDoc = querySnapshot.docs.some(
+        (docItem) => docItem.id === selectedQuestionId,
+      );
+
+      if (!isSameDoc) {
+        toast.error("Question already exists!");
+        return;
+      }
     }
 
     try {
@@ -139,7 +166,7 @@ const CompatibilityPage = () => {
             onClick={() => {
               setIsModalOpen(true);
             }}
-            disabled={questions && questions.length === 5}
+            // disabled={questions && questions.length === 5}
             className="bg-primary rounded-2xl px-4 py-2 w-1/2 md:w-full text-white text-xs md:text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             + Add New Question

@@ -83,6 +83,33 @@ const FuturePredictionQuestion = () => {
       toast.error("Please select a category");
       return;
     }
+
+    // 🔍 Check duplicate title
+    const q = query(
+      collection(db, "predictionQuestions"),
+      where("question", "==", formData.question),
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // ❌ If adding new & title exists
+    if (!isEditMode && !querySnapshot.empty) {
+      toast.error("Question already exists!");
+      return;
+    }
+
+    // ❌ If editing & title exists in another doc
+    if (isEditMode && !querySnapshot.empty) {
+      const isSameDoc = querySnapshot.docs.some(
+        (docItem) => docItem.id === selectedQuestionId,
+      );
+
+      if (!isSameDoc) {
+        toast.error("Question already exists!");
+        return;
+      }
+    }
+
     try {
       if (isEditMode) {
         // Update existing question

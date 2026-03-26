@@ -63,7 +63,7 @@ const pieData = [
 
 const COLORS = ["#D04500", "#F8B08A"];
 
-const stats = [
+const stats2 = [
   { label: "Total Questions", value: "4,852", color: "text-gray-900" },
   { label: "1 Credit QS", value: "2,104", color: "text-gray-900" },
   { label: "2 Credit QS", value: "1,540", color: "text-gray-900" },
@@ -87,6 +87,7 @@ const Dashboard = () => {
     completed: 0,
     scheduled: 0,
   });
+  const [stats, setStats] = useState([]);
 
   const fetchUsers = async (startDate, endDate) => {
     const q = query(
@@ -798,6 +799,75 @@ const Dashboard = () => {
       icon: Activity,
     },
   ];
+
+  const fetchAnalytics = async () => {
+    try {
+      // 1. Get all prediction questions
+      const snapshot = await getDocs(collection(db, "predictionQuestions"));
+      const snapshot2 = await getDocs(collection(db, "compatibilityQuestions"));
+      let total = 0;
+      let credit1 = 0;
+      let credit2 = 0;
+      let credit3 = 0;
+      let compatibility = 0;
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        total++;
+
+        if (data.credits === 1) credit1++;
+        if (data.credits === 2) credit2++;
+        if (data.credits === 3) credit3++;
+      });
+      snapshot2.forEach((doc) => {
+        const data = doc.data();
+        compatibility++;
+        total++;
+      });
+      // 2. Get refund count from users collection
+      const usersSnap = await getDocs(collection(db, "users"));
+
+      let refundCount = 0;
+
+      usersSnap.forEach((doc) => {
+        const user = doc.data();
+
+        // adjust this based on your schema
+        refundCount += user?.refundCredits || 0;
+      });
+
+      // 3. Pending approvals (example logic)
+      let pending = 0;
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.status === "pending") {
+          pending++;
+        }
+      });
+
+      // 4. Set stats
+      setStats([
+        { label: "Total Questions", value: total, color: "text-gray-900" },
+        { label: "1 Credit QS", value: credit1, color: "text-gray-900" },
+        { label: "2 Credits QS", value: credit2, color: "text-gray-900" },
+        { label: "3 Credits QS", value: credit3, color: "text-gray-900" },
+        {
+          label: "Compatibility QS",
+          value: compatibility,
+          color: "text-gray-900",
+        },
+        // { label: "Refund Count", value: refundCount, color: "text-red-600" },
+        // { label: "Pending Apprv.", value: pending, color: "text-orange-600" },
+      ]);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
   return (
     <div className="font-inter">
       <div className="px-4 md:px-8 mt-8 gap-3 flex flex-col">
@@ -1340,7 +1410,7 @@ const Dashboard = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
             {stats.map((item, index) => (
               <div key={index} className="flex flex-col">
                 <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wide">
